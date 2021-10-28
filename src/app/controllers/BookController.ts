@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import * as utils from '../../utils';
 import {
   REST_CONTROLLER,
   HTTP_GET,
 } from '../../core/decorators';
+import { StatusCodes } from '../constants/StatusCodes';
 import { Book } from '../entities/Book';
-import { SortOrder as SortOrderEnum } from '../types/QueryParams';
 
 @REST_CONTROLLER('/books')
 class BookController {
@@ -25,6 +24,7 @@ class BookController {
   @HTTP_GET('/')
   public async getAllBooks(req: Request, res: Response) {
 
-    res.status(200).json(await Book.getAllBooks(req.query.sort, req.query.order));
+    res.status(StatusCodes.HTTP_OK)
+      .json(await Book.getAllBooks(req.query.sort, req.query.order));
   }
 }

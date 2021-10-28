@@ -14,6 +14,7 @@ import { RequestWithAuthProp } from '../../core/types/RequestWithAuthProp';
 import Errors from "../constants/Errors";
 import { User } from "../entities/User";
 import { Book } from '../entities/Book';
+import { StatusCodes } from '../constants/StatusCodes';
 
 @REST_CONTROLLER('/user')
 class UserController {
@@ -63,7 +64,7 @@ class UserController {
     try {
       schema.validateSync(req.body, { abortEarly: false })
     } catch ({ errors }) {
-      return res.status(400).json({ errors: errors });
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: errors });
     }
 
     const existing_user = await User.findOne({
@@ -73,7 +74,7 @@ class UserController {
     });
 
     if (existing_user) {
-      return res.status(400).json({ errors: [Errors.EMAIL_ALREADY_TAKEN] });
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: [Errors.EMAIL_ALREADY_TAKEN] });
     }
 
     const user = User.create({
@@ -84,14 +85,14 @@ class UserController {
     });
 
     await user.save();
-    res.status(200).json(user);
+    res.status(StatusCodes.HTTP_OK).json(user);
   }
 
   @HTTP_GET('/books')
   @USE_MIDDLEWARE(requiresAuth)
   public async getAllBooksOfUser(req: RequestWithAuthProp, res: Response) {
     const user = req.auth.token.user;
-    return res.status(200).json(await user.getBooks())
+    return res.status(StatusCodes.HTTP_OK).json(await user.getBooks())
   }
 
   @HTTP_POST('/books/:bookId')
@@ -101,13 +102,13 @@ class UserController {
     const bookId = req.params.bookId;
 
     if (!bookId) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ 'Book id is required.' ]
       });
     }
 
     if (!(/^\d+$/).test(bookId)) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ 'Book id can only contain digits.' ]
       })
     }
@@ -115,20 +116,20 @@ class UserController {
     const existingBook = await Book.findOne({ id: parseInt(bookId) });
     
     if (! existingBook) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ `Could not find the book with id: ${bookId}` ]
       });
     }
 
     if (await user.hasBook(existingBook)) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ `You already have the book with id of ${req.params.bookId} in your bookshelf.` ]
       })
     }
 
     await user.attachBook(existingBook);
 
-    res.status(200).json(existingBook);
+    res.status(StatusCodes.HTTP_OK).json(existingBook);
   }
 
   @HTTP_DEL('/books/:bookId')
@@ -137,13 +138,13 @@ class UserController {
     const user = req.auth.token.user;
     const bookId = req.params.bookId;
     if (!bookId) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ 'Book id is required.' ]
       });
     }
 
     if (!(/^\d+$/).test(bookId)) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ 'Book id can only contain digits.' ]
       })
     }
@@ -151,19 +152,19 @@ class UserController {
     const existingBook = await Book.findOne({ id: parseInt(bookId) });
     
     if (! existingBook) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ `Could not find the book with id: ${bookId}` ]
       });
     }
 
     if (! await user.hasBook(existingBook)) {
-      return res.status(400).json({
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
         errors: [ `You don't have the book with id: ${bookId}` ]
       });
     }
 
     await user.detachBook(existingBook);
 
-    return res.sendStatus(200);
+    return res.sendStatus(StatusCodes.HTTP_OK);
   }
 }

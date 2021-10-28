@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable, OneToMany, JoinColumn, Unique, getManager, getConnection } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, OneToMany, JoinColumn, Unique, getManager } from 'typeorm';
 import { Sortable } from '../types/Sortable';
 import { BookUser } from './BookUser';
 import * as utils from '../../utils';

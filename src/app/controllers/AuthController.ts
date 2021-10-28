@@ -16,6 +16,7 @@ import Errors from "../constants/Errors";
 import { User } from "../entities/User";
 import { ApiToken } from "../entities/ApiToken";
 import { SESSION_EXPIRE_AFTER_HOURS } from '../constants/Session';
+import { StatusCodes } from '../constants/StatusCodes';
 
 @REST_CONTROLLER('/')
 class AuthController {
@@ -33,17 +34,17 @@ class AuthController {
     try {
       schema.validateSync(req.body, { abortEarly: false })
     } catch ({ errors }) {
-      return res.status(400).json({ errors: errors });
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: errors });
     }
 
     const existing_user = await User.findOne({ where: { email: req.body.email } });
 
     if (!existing_user) {
-      return res.status(400).json({ errors: [Errors.ACCOUNT_NOT_FOUND] });
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: [Errors.ACCOUNT_NOT_FOUND] });
     }
 
     if (!bcrypt.compareSync(req.body.password, existing_user.password_hash)) {
-      return res.status(400).json({ errors: [Errors.INVALID_CREDENTIALS] });
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: [Errors.INVALID_CREDENTIALS] });
     }
 
     const created_at = new Date();
@@ -67,14 +68,14 @@ class AuthController {
       }
     });
 
-    res.status(200).json(payload);
+    res.status(StatusCodes.HTTP_OK).json(payload);
   }
 
   @HTTP_GET('/logout')
   @USE_MIDDLEWARE(requiresAuth)
   public async logout(req: RequestWithAuthProp, res: Response) {
     await req.auth.token.remove();
-    res.sendStatus(200);
+    res.sendStatus(StatusCodes.HTTP_OK);
   };
 }
 

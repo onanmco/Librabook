@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Request } from 'express';
-import { BaseEntity, Entity, EntityTarget, getConnection } from 'typeorm';
+import { EntityTarget, getConnection } from 'typeorm';
 import { Sortable } from '../app/types/Sortable';
 
 export function getRandomString() {

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn, BaseEntity, ManyToMany, JoinTable, getRepository } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn, BaseEntity, getRepository } from 'typeorm';
 import { ApiToken } from "./ApiToken";
 import { Book } from './Book';
 import { BookUser } from './BookUser';

@@ -3,13 +3,14 @@ import * as utils from '../../utils/index';
 import Errors from "../constants/Errors";
 import { ApiToken } from "../entities/ApiToken";
 import { RequestWithAuthProp } from "../../core/types/RequestWithAuthProp";
+import { StatusCodes } from '../constants/StatusCodes';
 
 export async function requiresAuth(req: RequestWithAuthProp, res: Response, next: NextFunction) {
   const capturedAt = Date.now();
   const bearerToken = utils.getBearerToken(req);
 
   if (!bearerToken) {
-    return res.sendStatus(401);
+    return res.sendStatus(StatusCodes.HTTP_UNAUTHORIZED);
   }
 
   const tokenFound = await ApiToken.findOne({
@@ -25,11 +26,11 @@ export async function requiresAuth(req: RequestWithAuthProp, res: Response, next
   });
 
   if (!tokenFound) {
-    return res.sendStatus(401);
+    return res.sendStatus(StatusCodes.HTTP_UNAUTHORIZED);
   }
 
   if (capturedAt > tokenFound.expires_at.getTime()) {
-    return res.status(401).json({
+    return res.status(StatusCodes.HTTP_UNAUTHORIZED).json({
       errors: [Errors.SESSION_EXPIRED]
     });
   }
