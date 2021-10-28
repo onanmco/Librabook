@@ -71,9 +71,11 @@ export class User extends BaseEntity {
 
   public async hasBook(book: Book) {
     const bookId = book.id;
+    const userId = this.id;
     const books = await getRepository(Book).createQueryBuilder('book')
       .innerJoin('book.junction', 'junction')
       .where('book.id = :bookId', {bookId})
+      .andWhere('junction.user_id = :userId', {userId})
       .getRawMany();
 
     return books.length > 0;
@@ -82,8 +84,8 @@ export class User extends BaseEntity {
   public async attachBook(book: Book) {
     const relation = BookUser.create({
       last_read_page: null,
-      book: book,
-      user: this
+      book_id: book.id,
+      user_id: this.id
     });
 
     await relation.save();
