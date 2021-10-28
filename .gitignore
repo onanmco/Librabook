@@ -1,0 +1,10 @@
+.idea/
+.vscode/
+node_modules/
+build/
+tmp/
+temp/
+package-lock.json
+*.sqlite
+.env
+ormconfig.json

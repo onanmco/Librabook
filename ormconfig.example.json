@@ -1,0 +1,22 @@
+{
+    "type": "sqlite",
+    "name": "default",
+    "database": "./database.sqlite",
+    "charset": "utf8mb4",
+    "synchronize": true,
+    "logging": false,
+    "entities": [
+       "build/app/entities/*.js"
+    ],
+    "migrations": [
+       "src/app/migrations/**/*.ts"
+    ],
+    "subscribers": [
+       "src/app/subscribers/**/*.ts"
+    ],
+    "cli": {
+       "entitiesDir": "src/app/entities",
+       "migrationsDir": "src/app/migrations",
+       "subscribersDir": "src/app/subscribers"
+    }
+ }
