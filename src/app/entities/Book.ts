@@ -1,10 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable, OneToMany, JoinColumn, Unique } from 'typeorm';
 import { BookUser } from './BookUser';
 import { User } from './User';
 
 @Entity({
   name: 'books'
 })
+@Unique(['content'])
 export class Book extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
