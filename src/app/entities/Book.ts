@@ -1,10 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable, OneToMany, JoinColumn, Unique, getManager } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, JoinTable, OneToMany, JoinColumn, Unique, getManager, getConnection } from 'typeorm';
+import { Sortable } from '../types/Sortable';
 import { BookUser } from './BookUser';
+import * as utils from '../../utils';
+import { SortOrder } from '../types/QueryParams';
 @Entity({
   name: 'books'
 })
 @Unique(['content'])
-export class Book extends BaseEntity {
+export class Book extends BaseEntity implements Sortable{
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -38,17 +41,30 @@ export class Book extends BaseEntity {
   })
   junction: BookUser[]
 
-  public static async getAllBooksSortedByReadingRate(sortOrder: string = 'DESC'): Promise<Book[]> {
-    const pattern = new RegExp('(^asc$)|(^desc$)', 'i');
-    const order = pattern.test(sortOrder) ? sortOrder : 'DESC';
+  public static async getAllBooks(sortCriteria = null, sortOrder = null): Promise<Book[]> {
+    let select = 'SELECT books.*';
+    let from = ' FROM books';
+    let join = '';
+    let groupBy = '';
+    let orderBy = '';
+
+    const isSortCriteriaATableColumn = (await utils.getTableColumns(Book)).includes(sortCriteria);
+    const isValidOrderSpecified = Object.keys(SortOrder).map(o => SortOrder[o]).includes(sortOrder);
+
+    let params = [];
+
+    if (isSortCriteriaATableColumn) {
+      orderBy = ` ORDER BY ${sortCriteria} ${isValidOrderSpecified ? sortOrder : SortOrder.DESC}`;
+    } else if (isValidOrderSpecified) {
+      const aggregateCriteria = 'readers_count';
+      select = `${select}, COUNT(*) AS ${aggregateCriteria}`;
+      join = ' LEFT JOIN book_user ON book_user.book_id = books.id';
+      groupBy = ' GROUP BY books.id';
+      orderBy = ` ORDER BY ${aggregateCriteria} ${sortOrder}`;
+    }
+
+    const sql = `${select}${from}${join}${groupBy}${orderBy};`;
     const entityManager = getManager();
-    let sql = `
-    SELECT books.*, COUNT(*) as reader_count
-    FROM books 
-    LEFT JOIN book_user ON book_user.book_id = books.id
-    GROUP BY books.id
-    ORDER BY reader_count {{SORT_ORDER}};`;
-    sql = sql.replace('{{SORT_ORDER}}', order);
     return await entityManager.query(sql);
   }
 }

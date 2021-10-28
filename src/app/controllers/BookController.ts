@@ -1,20 +1,30 @@
-import { query, Request, Response } from 'express';
+import { Request, Response } from 'express';
+import * as utils from '../../utils';
 import {
   REST_CONTROLLER,
   HTTP_GET,
 } from '../../core/decorators';
 import { Book } from '../entities/Book';
+import { SortOrder as SortOrderEnum } from '../types/QueryParams';
 
 @REST_CONTROLLER('/books')
 class BookController {
+  /**
+   * Method to get all available books on the system.
+   * 
+   * If a sort criteria that also matches with any of the books table columns is specfied as a query param,
+   * results will be sorted according to this field.
+   * e.g. GET /books?sort=page_count&order=desc => results will be sorted according to page count in descending order.
+   * 
+   * If there is no sort criteria speficied however a sort order specified,
+   * results will be sorted according to reader count of the books.
+   * 
+   * @param {Request} req 
+   * @param {Response} res 
+   */
   @HTTP_GET('/')
   public async getAllBooks(req: Request, res: Response) {
-    const sortOrder = req.query.sort;
 
-    if (! sortOrder) {
-      return res.status(200).json(await Book.find());
-    }
-    
-    res.status(200).json(await Book.getAllBooksSortedByReadingRate(sortOrder as string));
+    res.status(200).json(await Book.getAllBooks(req.query.sort, req.query.order));
   }
 }
