@@ -61,8 +61,10 @@ export class User extends BaseEntity {
   api_tokens: ApiToken[];
 
   public async getBooks() {
+    const userId = this.id;
     const books = await getRepository(Book).createQueryBuilder('book')
       .innerJoin('book.junction', '')
+      .where('user_id = :userId', {userId})
       .addSelect('last_read_page')
       .getRawMany()
 
