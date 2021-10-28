@@ -6,5 +6,5 @@ Steps to boot up:
 4. npm install -g ts-node
 5. npm i
 6. mv .env.example .env
-7. mv ormconfig.example.json ormconfig.example
+7. mv ormconfig.example.json ormconfig.json
 8. npm start
