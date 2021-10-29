@@ -6,6 +6,10 @@ import {
 import { StatusCodes } from '../constants/StatusCodes';
 import { Book } from '../entities/Book';
 
+/**
+ * Class BookController
+ * Responsible for processing and responding to requests, related to Book entity.
+ */
 @REST_CONTROLLER('/books')
 class BookController {
   /**

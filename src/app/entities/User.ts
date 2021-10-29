@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColum
 import { ApiToken } from "./ApiToken";
 import { Book } from './Book';
 import { BookUser } from './BookUser';
+import { Group } from './Group';
 
 @Entity({
   name: 'users'
@@ -9,6 +10,11 @@ import { BookUser } from './BookUser';
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    nullable: false
+  })
+  group_id: number;
 
   @Column({
     nullable: true
@@ -55,7 +61,17 @@ export class User extends BaseEntity {
     name: 'id',
     referencedColumnName: 'user_id'
   })
-  junction: BookUser[]
+  junction: BookUser[];
+
+  @ManyToOne(() => Group, group => group.users, {
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT'
+  })
+  @JoinColumn({
+    name: 'group_id',
+    referencedColumnName: 'id'
+  })
+  group: Group;
 
   @OneToMany(() => ApiToken, api_token => api_token.user)
   api_tokens: ApiToken[];
