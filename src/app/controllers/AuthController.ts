@@ -18,8 +18,21 @@ import { ApiToken } from "../entities/ApiToken";
 import { SESSION_EXPIRE_AFTER_HOURS } from '../constants/Session';
 import { StatusCodes } from '../constants/StatusCodes';
 
+/**
+ * Class AuthController
+ * Responsible for processing and responding to requests, related to login and logout operations.
+ */
 @REST_CONTROLLER('/')
 class AuthController {
+  /**
+   * This method creates a session based api token if the attempted user's credentials are correct.
+   * Users can make requests to protected routes via this token.
+   * Auth token must be attached to HTTP Authorization header with Bearer prefix.
+   * 
+   * @param req 
+   * @param res 
+   * @returns 
+   */
   @HTTP_POST('/login')
   @USE_MIDDLEWARE(bodyParser.json())
   public async login(req: Request, res: Response) {
@@ -63,7 +76,9 @@ class AuthController {
       join: {
         alias: 'token',
         leftJoinAndSelect: {
-          'user': 'token.user'
+          'user': 'token.user',
+          'group': 'user.group',
+          'roles': 'group.roles',
         }
       }
     });
@@ -71,6 +86,12 @@ class AuthController {
     res.status(StatusCodes.HTTP_OK).json(payload);
   }
 
+  /**
+   * Logges out the user from current session by removing the provided bearer token.
+   * 
+   * @param {RequestWithAuthProp} req 
+   * @param {Response} res 
+   */
   @HTTP_GET('/logout')
   @USE_MIDDLEWARE(requiresAuth)
   public async logout(req: RequestWithAuthProp, res: Response) {

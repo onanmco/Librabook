@@ -15,13 +15,43 @@ import Errors from "../constants/Errors";
 import { User } from "../entities/User";
 import { Book } from '../entities/Book';
 import { StatusCodes } from '../constants/StatusCodes';
+import { Groups } from '../constants/Groups';
+import { Group } from '../entities/Group';
+import _ from 'lodash';
+import { Auth } from '../helpers/Auth';
+import { User as AuthUser} from '../gates/User';
 
+/**
+ * Class UserController
+ * Responsible for processing and responding to requests, related to Users.
+ */
 @REST_CONTROLLER('/user')
 class UserController {
+  /**
+   * Method that allows users to create new accounts.
+   * 
+   * There are two groups of users and several roles associated with them.
+   * User groups identified by the group_id column on the users table.
+   * 
+   * Guests can only create CONSUMER group users which they can only.
+   * read books, update their book collections, etc. CONSUMER group does NOT have administrational roles.
+   * So even if a guest pass a field as it specifies the group as ROOT, it will be ignored and the
+   * requested user will be created with CONSUMER group rights.
+   * 
+   * To create ROOT users with administrational rights, you must be a logged in ROOT user.
+   * 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns void
+   */
   @HTTP_POST('/register')
   @USE_MIDDLEWARE(bodyParser.json())
   public async create(req: RequestWithAuthProp, res: Response) {
-    const schema = Yup.object({
+    const requestedUser = new Auth(req);
+    const isRoot: boolean = (await requestedUser.isAuth()) && AuthUser.canCreateRootUser(requestedUser.getAuthToken().user);
+    const groups = _.keyBy(await Group.find(), 'name');
+
+    let validationRules = {
       first_name: Yup.string()
         .min(1)
         .max(255)
@@ -59,7 +89,15 @@ class UserController {
       email: Yup.string()
         .email()
         .required()
-    });
+    } as Record<string, any>;
+
+    if (isRoot) {
+      validationRules.group =
+        Yup.string()
+        .oneOf(Object.keys(groups))
+    }
+
+    const schema = Yup.object(validationRules);
 
     try {
       schema.validateSync(req.body, { abortEarly: false })
@@ -77,7 +115,16 @@ class UserController {
       return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: [Errors.EMAIL_ALREADY_TAKEN] });
     }
 
+    let groupId = null;
+
+    if (isRoot && req.body.group) {
+      groupId = groups[req.body.group].id;
+    } else {
+      groupId = groups[Groups.CONSUMER].id;
+    }
+
     const user = User.create({
+      group_id: groupId,
       email: req.body.email,
       password_hash: bcrypt.hashSync(req.body.password, 10),
       first_name: req.body.first_name,
@@ -88,6 +135,12 @@ class UserController {
     res.status(StatusCodes.HTTP_OK).json(user);
   }
 
+  /**
+   * Method that returns all the books in the bookshelf of the logged in user.
+   * 
+   * @param req 
+   * @param res 
+   */
   @HTTP_GET('/books')
   @USE_MIDDLEWARE(requiresAuth)
   public async getAllBooksOfUser(req: RequestWithAuthProp, res: Response) {
@@ -95,6 +148,12 @@ class UserController {
     return res.status(StatusCodes.HTTP_OK).json(await user.getBooks())
   }
 
+  /**
+   * Method that adds a particular book to the bookshelf of the logged in user.
+   * 
+   * @param req 
+   * @param res 
+   */
   @HTTP_POST('/books/:bookId')
   @USE_MIDDLEWARE(requiresAuth)
   public async addBookToUsersBookshelf(req: RequestWithAuthProp, res: Response) {
@@ -132,6 +191,12 @@ class UserController {
     res.status(StatusCodes.HTTP_OK).json(existingBook);
   }
 
+  /**
+   * Method that removes a particular book from the bookshelf of the logged in user.
+   * 
+   * @param req 
+   * @param res 
+   */
   @HTTP_DEL('/books/:bookId')
   @USE_MIDDLEWARE(requiresAuth)
   public async removeBookFromUsersBookshelf(req: RequestWithAuthProp, res: Response) {

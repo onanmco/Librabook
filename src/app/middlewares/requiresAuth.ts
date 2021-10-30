@@ -1,42 +1,22 @@
 import { Response, NextFunction } from 'express';
-import * as utils from '../../utils/index';
-import Errors from "../constants/Errors";
-import { ApiToken } from "../entities/ApiToken";
 import { RequestWithAuthProp } from "../../core/types/RequestWithAuthProp";
-import { StatusCodes } from '../constants/StatusCodes';
+import { Auth } from '../helpers/Auth';
 
 export async function requiresAuth(req: RequestWithAuthProp, res: Response, next: NextFunction) {
-  const capturedAt = Date.now();
-  const bearerToken = utils.getBearerToken(req);
+  const authAttempt = new Auth(req);
 
-  if (!bearerToken) {
-    return res.sendStatus(StatusCodes.HTTP_UNAUTHORIZED);
-  }
-
-  const tokenFound = await ApiToken.findOne({
-    where: {
-      token: bearerToken
-    },
-    join: {
-      alias: 'token',
-      leftJoinAndSelect: {
-        'user': 'token.user'
-      }
+  if (await authAttempt.isAuth() !== true) {
+    const errors = authAttempt.getErrors();
+    if (errors.length > 0) {
+      return res.status(authAttempt.getStatus()).json({
+        errors: errors
+      });
     }
-  });
-
-  if (!tokenFound) {
-    return res.sendStatus(StatusCodes.HTTP_UNAUTHORIZED);
-  }
-
-  if (capturedAt > tokenFound.expires_at.getTime()) {
-    return res.status(StatusCodes.HTTP_UNAUTHORIZED).json({
-      errors: [Errors.SESSION_EXPIRED]
-    });
+    return res.sendStatus(authAttempt.getStatus());
   }
 
   req.auth = {
-    token: tokenFound
+    token: authAttempt.getAuthToken()
   };
 
   next();
