@@ -43,7 +43,6 @@ export function getTableName<T>(connection: Connection, entity: EntityTarget<T>)
 export function getJunctionTableName<T>(entities: EntityTarget<T>[]): string {
   return entities
     .map(entity => getClassName(entity as Function).toLowerCase())
-    .sort(sortCaseInsensitive)
     .join('_');
 }
 
