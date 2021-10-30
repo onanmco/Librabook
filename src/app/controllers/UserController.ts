@@ -25,7 +25,7 @@ import { User as AuthUser} from '../gates/User';
  * Class UserController
  * Responsible for processing and responding to requests, related to Users.
  */
-@REST_CONTROLLER('/user')
+@REST_CONTROLLER('/users')
 class UserController {
   /**
    * Method that allows users to create new accounts.
@@ -44,7 +44,7 @@ class UserController {
    * @param {Response} res 
    * @returns void
    */
-  @HTTP_POST('/register')
+  @HTTP_POST('/')
   @USE_MIDDLEWARE(bodyParser.json())
   public async create(req: RequestWithAuthProp, res: Response) {
     const requestedUser = new Auth(req);
@@ -136,15 +136,37 @@ class UserController {
   }
 
   /**
-   * Method that returns all the books in the bookshelf of the logged in user.
+   * Method that returns all the books in the bookshelf of a user.
    * 
-   * @param req 
-   * @param res 
+   * @param {RequestWithAuthProp} req 
+   * @param {Response} res 
    */
-  @HTTP_GET('/books')
+  @HTTP_GET('/:userId/books')
   @USE_MIDDLEWARE(requiresAuth)
   public async getAllBooksOfUser(req: RequestWithAuthProp, res: Response) {
-    const user = req.auth.token.user;
+    const schema = Yup.object({
+      userId: Yup.number()
+        .required()
+    });
+
+    try {
+      schema.validateSync(req.params, { abortEarly: false })
+    } catch ({ errors }) {
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: errors });
+    }
+
+    const user = await User.findOne({
+      where: {
+        id: req.params.userId
+      }
+    });
+
+    if (! user) {
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
+        errors: [ `User with id ${req.params.userId} could not be found.` ]
+      });
+    }
+
     return res.status(StatusCodes.HTTP_OK).json(await user.getBooks())
   }
 
@@ -154,24 +176,30 @@ class UserController {
    * @param req 
    * @param res 
    */
-  @HTTP_POST('/books/:bookId')
+  @HTTP_POST('/:userId/books/:bookId')
   @USE_MIDDLEWARE(requiresAuth)
   public async addBookToUsersBookshelf(req: RequestWithAuthProp, res: Response) {
+    const schema = Yup.object({
+      userId: Yup.number()
+      .required(),
+      bookId: Yup.number()
+      .required()
+    });
+    
+    try {
+      schema.validateSync(req.params, { abortEarly: false })
+    } catch ({ errors }) {
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: errors });
+    }
+    
     const user = req.auth.token.user;
+
+    if (user.id != parseInt(req.params.userId)) {
+      return res.sendStatus(StatusCodes.HTTP_NOT_FOUND);
+    }
+    
     const bookId = req.params.bookId;
-
-    if (!bookId) {
-      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
-        errors: [ 'Book id is required.' ]
-      });
-    }
-
-    if (!(/^\d+$/).test(bookId)) {
-      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
-        errors: [ 'Book id can only contain digits.' ]
-      })
-    }
-
+    
     const existingBook = await Book.findOne({ id: parseInt(bookId) });
     
     if (! existingBook) {
@@ -197,22 +225,29 @@ class UserController {
    * @param req 
    * @param res 
    */
-  @HTTP_DEL('/books/:bookId')
+  @HTTP_DEL('/:userId/books/:bookId')
   @USE_MIDDLEWARE(requiresAuth)
   public async removeBookFromUsersBookshelf(req: RequestWithAuthProp, res: Response) {
+    const schema = Yup.object({
+      userId: Yup.number()
+      .required(),
+      bookId: Yup.number()
+      .required()
+    });
+    
+    try {
+      schema.validateSync(req.params, { abortEarly: false })
+    } catch ({ errors }) {
+      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({ errors: errors });
+    }
+    
     const user = req.auth.token.user;
-    const bookId = req.params.bookId;
-    if (!bookId) {
-      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
-        errors: [ 'Book id is required.' ]
-      });
-    }
 
-    if (!(/^\d+$/).test(bookId)) {
-      return res.status(StatusCodes.HTTP_BAD_REQUEST).json({
-        errors: [ 'Book id can only contain digits.' ]
-      })
+    if (user.id != parseInt(req.params.userId)) {
+      return res.sendStatus(StatusCodes.HTTP_NOT_FOUND);
     }
+    
+    const bookId = req.params.bookId;
 
     const existingBook = await Book.findOne({ id: parseInt(bookId) });
     
