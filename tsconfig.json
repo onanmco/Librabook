@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-//    "lib": [
-//      "es5",
-//      "es6"
-//    ],
+   "lib": [
+     "ES2018.Regexp"
+   ],
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
