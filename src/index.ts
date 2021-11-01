@@ -7,6 +7,7 @@ import { createConnection } from "typeorm";
 import { respond404 as respondWith404IfNoRouteMatches } from './app/middlewares/404';
 import * as dotenv from 'dotenv';
 import { DBSeeder } from './nonhttp/DBSeeder';
+import {generalErrorHandler} from "./app/middlewares/errorHandlers";
 
 dotenv.config();
 let port: string = process.env.APP_PORT || '8000';
@@ -20,6 +21,7 @@ createConnection().then(async () => {
   }
   app.use(Router.getInstance());
   app.use(respondWith404IfNoRouteMatches);
+  app.use(generalErrorHandler);
 
   app.listen(port, () => {
     console.log('Local server is up on port ' + port);

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import {
   REST_CONTROLLER,
   HTTP_GET,
@@ -26,9 +26,12 @@ class BookController {
    * @param {Response} res 
    */
   @HTTP_GET('/')
-  public async getAllBooks(req: Request, res: Response) {
-
-    res.status(StatusCodes.HTTP_OK)
-      .json(await Book.getAllBooks(req.query.sort, req.query.order));
+  public async getAllBooks(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.status(StatusCodes.HTTP_OK)
+        .json(await Book.getAllBooks(req.query.sort, req.query.order));
+    } catch (err) {
+      next(err);
+    }
   }
 }

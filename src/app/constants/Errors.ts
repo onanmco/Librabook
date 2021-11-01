@@ -16,4 +16,7 @@ export default class Errors {
   }
   public static EMAIL_ALREADY_TAKEN = 'E-mail address has been already taken.';
   public static SESSION_EXPIRED = 'Session expired.';
+  public static UNKNOWN_ERROR = 'Unable to process your request. Please contact support.';
+  public static VALIDATION_ERROR = 'Invalid parameters in values.';
+  public static UNAUTHORIZED_ACCESS = 'Unauthorized.';
 }
