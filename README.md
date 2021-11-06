@@ -5,15 +5,15 @@ NodeJS
 
 Setting Up Redis:
 1. Download and install redis from redis.io/download
-2. $ sed 's/^#?port*/port 6379' <path_to_redis_installation_dir>/redis.conf
-3. $ sed 's/^#?protected-mode*/protected-mode yes' <path_to_redis_installation_dir>/redis.conf
-4. $ sed 's/^#?bind*/bind 127:0.0.1 -::1' <path_to_redis_installation_dir>/redis.conf
+2. $ sed -ri "" 's/^#?port.*/port 6379/' <path_to_redis_installation_dir>/redis.conf
+3. $ sed -ri "" 's/^#?protected-mode.*/protected-mode yes/' <path_to_redis_installation_dir>/redis.conf
+4. $ sed -ri "" 's/^#?bind.*/bind 127:0.0.1 -::1/' <path_to_redis_installation_dir>/redis.conf
 
 If you want to recover latest data after a restart apply following steps:
 
-5. $ sed 's/^#?appendonly*/appendonly yes' <path_to_redis_installation_dir>/redis.conf
+5. $ sed -ri "" 's/^#?appendonly.*/appendonly yes/' <path_to_redis_installation_dir>/redis.conf
 6. Create a file like <filename>.aof at redis installation directory
-5. $ sed 's/^#?appendfilename*/<filename>.aof' <path_to_redis_installation_dir>/redis.conf
+5. $ sed -ri "" 's/^#?appendfilename.*/appendfilename <filename>.aof/' <path_to_redis_installation_dir>/redis.conf
 
 Initialization:
 1. npm install -g concurrently
