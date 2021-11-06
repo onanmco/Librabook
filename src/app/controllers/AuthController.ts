@@ -14,10 +14,10 @@ import { requiresAuth } from '../middlewares/requiresAuth';
 import { RequestWithAuthProp } from '../../core/types/RequestWithAuthProp';
 import Errors from "../constants/Errors";
 import { User } from "../entities/User";
-import { ApiToken } from "../entities/ApiToken";
-import { SESSION_EXPIRE_AFTER_HOURS } from '../constants/Session';
 import { StatusCodes } from '../constants/StatusCodes';
 import {CustomErrorBuilder} from "../../core/types/CustomErrorBuilder";
+import { Client } from '../../libs/redis/Client';
+import { SESSION_EXPIRE_AFTER_SECONDS } from '../constants/Session';
 
 /**
  * Class AuthController
@@ -52,7 +52,18 @@ class AuthController {
         new CustomErrorBuilder(Errors.VALIDATION_ERROR).details(errors).dispatch();
       }
 
-      const existing_user = await User.findOne({ where: { email: req.body.email } });
+      const existing_user = await User.findOne({
+        where: {
+          email: req.body.email
+        },
+        join: {
+          alias: 'user',
+          leftJoinAndSelect: {
+            'group': 'user.group',
+            'roles': 'group.roles'
+          }
+        }
+      });
 
       if (!existing_user) {
         new CustomErrorBuilder(Errors.ACCOUNT_NOT_FOUND).dispatch();
@@ -62,30 +73,18 @@ class AuthController {
         new CustomErrorBuilder(Errors.INVALID_CREDENTIALS).dispatch();
       }
 
-      const created_at = new Date();
-
-      const api_token = await ApiToken.create({
-        user_id: existing_user.id,
-        token: utils.getRandomString(),
-        created_at: created_at,
-        expires_at: datefns.addHours(created_at, SESSION_EXPIRE_AFTER_HOURS)
-      }).save();
-
-      const payload = await ApiToken.findOne({
-        where: {
-          token: api_token.token
-        },
-        join: {
-          alias: 'token',
-          leftJoinAndSelect: {
-            'user': 'token.user',
-            'group': 'user.group',
-            'roles': 'group.roles',
-          }
-        }
+      const redis = await Client.getConnection();
+      const token = utils.getRandomString();
+      await redis.set(`session_id:${token}`, String(existing_user.id), {
+        EX: SESSION_EXPIRE_AFTER_SECONDS
       });
 
-      res.status(StatusCodes.HTTP_OK).json(payload);
+      res
+      .status(StatusCodes.HTTP_OK)
+      .json({
+        token: token,
+        user: existing_user
+      });
     } catch (err) {
       next(err);
     }
@@ -101,7 +100,11 @@ class AuthController {
   @USE_MIDDLEWARE(requiresAuth)
   public async logout(req: RequestWithAuthProp, res: Response, next: NextFunction) {
     try {
-      await req.auth.token.remove();
+      const token =  req.auth.token;
+      try {
+        const redis = await Client.getConnection();
+        redis.del(`session_id:${token}`);
+      } catch (err) {}
       res.sendStatus(StatusCodes.HTTP_OK);
     } catch (err) {
       next(err);
