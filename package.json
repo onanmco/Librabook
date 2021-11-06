@@ -7,7 +7,7 @@
       "start:run": "nodemon build/index.js",
       "start": "concurrently npm:start:*"
    },
-   "author": "Mustafa Cem ONAN <onanmco@gmail.com>",
+   "author": "M. Cem ONAN <180315064@ogr.cbu.edu.tr>",
    "license": "ISC",
    "dependencies": {
       "@types/bcrypt": "^5.0.0",
