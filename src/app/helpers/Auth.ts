@@ -39,8 +39,7 @@ export class Auth {
       return false;
     }
 
-    const redis = Client.getInstance();
-    await redis.connect();
+    const redis = await Client.getConnection();
     const authUserId = await redis.get(`session_id:${bearerToken}`);
   
     if (!authUserId) {

@@ -73,8 +73,7 @@ class AuthController {
         new CustomErrorBuilder(Errors.INVALID_CREDENTIALS).dispatch();
       }
 
-      const redis = Client.getInstance();
-      await redis.connect();
+      const redis = await Client.getConnection();
       const token = utils.getRandomString();
       await redis.set(`session_id:${token}`, String(existing_user.id), {
         EX: SESSION_EXPIRE_AFTER_SECONDS
@@ -103,8 +102,7 @@ class AuthController {
     try {
       const token =  req.auth.token;
       try {
-        const redis = Client.getInstance();
-        await redis.connect();
+        const redis = await Client.getConnection();
         redis.del(`session_id:${token}`);
       } catch (err) {}
       res.sendStatus(StatusCodes.HTTP_OK);
