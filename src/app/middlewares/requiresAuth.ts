@@ -4,6 +4,7 @@ import { Auth } from '../helpers/Auth';
 import {CustomErrorBuilder} from "../../core/types/CustomErrorBuilder";
 import Errors from "../constants/Errors";
 import {StatusCodes} from "../constants/StatusCodes";
+import * as utils from "../../utils";
 
 export async function requiresAuth(req: RequestWithAuthProp, res: Response, next: NextFunction) {
   const authAttempt = new Auth(req);
@@ -21,7 +22,8 @@ export async function requiresAuth(req: RequestWithAuthProp, res: Response, next
   }
 
   req.auth = {
-    token: authAttempt.getAuthToken()
+    token: utils.getBearerToken(req),
+    user: authAttempt.getAuthUser()
   };
 
   next();

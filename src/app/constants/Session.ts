@@ -1,1 +1,1 @@
-export const SESSION_EXPIRE_AFTER_HOURS = 3; 
+export const SESSION_EXPIRE_AFTER_SECONDS = 3 * 60 * 60; 

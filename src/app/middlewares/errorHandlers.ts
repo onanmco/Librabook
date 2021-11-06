@@ -27,6 +27,8 @@ export function generalErrorHandler(
   if (err.details) {
     response.details = err.details;
   }
+
+  console.log(err);
   
   res
     .status(code)

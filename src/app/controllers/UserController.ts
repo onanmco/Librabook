@@ -50,7 +50,7 @@ class UserController {
   public async create(req: RequestWithAuthProp, res: Response, next: NextFunction) {
     try {
       const requestedUser = new Auth(req);
-      const isRoot: boolean = (await requestedUser.isAuth()) && AuthUser.canCreateRootUser(requestedUser.getAuthToken().user);
+      const isRoot: boolean = (await requestedUser.isAuth()) && AuthUser.canCreateRootUser(requestedUser.getAuthUser());
       const groups = _.keyBy(await Group.find(), 'name');
 
       let validationRules = {
@@ -200,7 +200,7 @@ class UserController {
         new CustomErrorBuilder(Errors.VALIDATION_ERROR).details(errors).dispatch();
       }
 
-      const user = req.auth.token.user;
+      const user = req.auth.user;
 
       if (user.id != parseInt(req.params.userId)) {
         return res.sendStatus(StatusCodes.HTTP_NOT_FOUND);
@@ -249,7 +249,7 @@ class UserController {
         new CustomErrorBuilder(Errors.VALIDATION_ERROR).details(errors).dispatch();
       }
 
-      const user = req.auth.token.user;
+      const user = req.auth.user;
 
       if (user.id != parseInt(req.params.userId)) {
         return res.sendStatus(StatusCodes.HTTP_NOT_FOUND);

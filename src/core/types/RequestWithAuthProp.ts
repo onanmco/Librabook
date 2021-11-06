@@ -1,9 +1,8 @@
 import { Request } from 'express';
-import {ApiToken} from "../../app/entities/ApiToken";
-
-
+import { User } from '../../app/entities/User';
 export interface RequestWithAuthProp extends Request {
   auth?: {
-    token?: ApiToken
+    token?: string,
+    user?: User
   }
 }

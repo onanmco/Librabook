@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn, BaseEntity, getRepository } from 'typeorm';
-import { ApiToken } from "./ApiToken";
 import { Book } from './Book';
 import { BookUser } from './BookUser';
 import { Group } from './Group';
@@ -72,9 +71,6 @@ export class User extends BaseEntity {
     referencedColumnName: 'id'
   })
   group: Group;
-
-  @OneToMany(() => ApiToken, api_token => api_token.user)
-  api_tokens: ApiToken[];
 
   public async getBooks() {
     const userId = this.id;

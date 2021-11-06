@@ -1,8 +1,10 @@
 import { Request } from "express";
 import { StatusCodes } from "../constants/StatusCodes";
 import * as utils from '../../utils';
-import { ApiToken } from "../entities/ApiToken";
 import Errors from "../constants/Errors";
+import { Client } from "../../libs/redis/Client";
+import { User } from "../entities/User";
+import { SESSION_EXPIRE_AFTER_SECONDS } from "../constants/Session";
 
 /**
  * Auth class is used to decompose the logic that determines if requested user is auth or not.
@@ -13,7 +15,7 @@ export class Auth {
   private errors: string[];
   private pristine: boolean;
   private capturedAt: number;
-  private tokenOfTheAuthUser: ApiToken;
+  private authUser: User;
 
   constructor(request: Request) {
     this.request = request;
@@ -21,7 +23,7 @@ export class Auth {
     this.errors = [];
     this.pristine = true;
     this.capturedAt = Date.now();
-    this.tokenOfTheAuthUser = null;
+    this.authUser = null;
   }
 
   public async isAuth(): Promise<boolean> {
@@ -37,32 +39,36 @@ export class Auth {
       return false;
     }
 
-    const tokenFound = await ApiToken.findOne({
+    const redis = Client.getInstance();
+    await redis.connect();
+    const authUserId = await redis.get(`session_id:${bearerToken}`);
+  
+    if (!authUserId) {
+      this.status = StatusCodes.HTTP_UNAUTHORIZED;
+      return false;
+    }
+
+    await redis.expire(`session_id:${bearerToken}`, SESSION_EXPIRE_AFTER_SECONDS);
+
+    const authUser = await User.findOne({
       where: {
-        token: bearerToken
+        id: authUserId
       },
       join: {
-        alias: 'token',
+        alias: 'user',
         leftJoinAndSelect: {
-          'user': 'token.user',
           'group': 'user.group',
           'roles': 'group.roles'
         }
       }
     });
-  
-    if (!tokenFound) {
+
+    if (!authUser) {
       this.status = StatusCodes.HTTP_UNAUTHORIZED;
       return false;
     }
 
-    if (this.capturedAt > tokenFound.expires_at.getTime()) {
-      this.status = StatusCodes.HTTP_UNAUTHORIZED;
-      this.errors = [Errors.SESSION_EXPIRED];
-      return false;
-    }
-
-    this.tokenOfTheAuthUser = tokenFound;
+    this.authUser = authUser;
     return true;
   }
 
@@ -74,7 +80,7 @@ export class Auth {
     return this.errors;
   }
 
-  public getAuthToken(): ApiToken {
-    return this.tokenOfTheAuthUser;
+  public getAuthUser(): User {
+    return this.authUser;
   }
 }
