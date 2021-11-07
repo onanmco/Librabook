@@ -1,21 +1,7 @@
 # swe_term_project_backend 
 Requirements:
-Redis v6.x or later (For session mgmt.)
+Docker
 NodeJS
-
-Setting Up Redis:
-1. Download and install redis from redis.io/download
-2. $ sed -ri "" 's/^#?port.*/port 6379/' {path_to_redis_installation_dir}/redis.conf
-3. $ sed -ri "" 's/^#?protected-mode.*/protected-mode yes/' {path_to_redis_installation_dir}/redis.conf
-4. $ sed -ri "" 's/^#?bind.*/bind 127:0.0.1 -::1/' {path_to_redis_installation_dir}/redis.conf
-5. $ sed -ri "" 's/^#?requirepass.*/requirepass {password}/' {path_to_redis_installation_dir}/redis.conf
-
-If you want to recover latest data after a restart apply following steps:
-
-6. $ cd {path_to_redis_installation_dir}
-7. $ sed -ri "" 's/^#?appendonly.*/appendonly yes/' redis.conf
-8. $ touch {file_name}.aof
-9. $ sed -ri "" 's/^#?appendfilename.*/appendfilename {file_name}.aof/' redis.conf
 
 Initialization:
 1. npm install -g concurrently
@@ -28,8 +14,9 @@ Initialization:
 8. Make sure you have set required values for environment variables.
 9. Set DB_SEED=1 if you want to seed db for creating groups and roles and root accounts optionally. Once the DB has been seed, it's recommended to set this as 0.
 
-Starting Redis:
-1. {absolute_path_to_redis.conf}/src/redis-server {absolute_path_to_redis.conf}
+Setting Up Redis:
+1. cd ./src/nonhttp/containers/redis
+2. docker compose up
 
 Starting App:
 1. npm start

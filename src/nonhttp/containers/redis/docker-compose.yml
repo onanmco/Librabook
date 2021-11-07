@@ -1,0 +1,8 @@
+services:
+  redis:
+    container_name: redis
+    build: ./build
+    ports: 
+      - "6379:6379"
+    volumes:
+      - ./conf/:/usr/local/etc/redis/
