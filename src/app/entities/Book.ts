@@ -24,11 +24,6 @@ export class Book extends BaseEntity {
   author: string
 
   @Column({
-    nullable: false
-  })
-  page_count: number;
-
-  @Column({
     length: 255,
     nullable: false
   })
