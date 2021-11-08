@@ -16,8 +16,8 @@ import Errors from "../constants/Errors";
 import { User } from "../entities/User";
 import { StatusCodes } from '../constants/StatusCodes';
 import {CustomErrorBuilder} from "../../core/types/CustomErrorBuilder";
-import { Client } from '../../libs/redis/Client';
-import { SESSION_EXPIRE_AFTER_SECONDS } from '../constants/Session';
+import { RedisConnector } from '../../libs/redis/RedisConnector';
+import { Client as RedisClient } from "../../libs/redis/Client";
 
 /**
  * Class AuthController
@@ -73,11 +73,10 @@ class AuthController {
         new CustomErrorBuilder(Errors.INVALID_CREDENTIALS).dispatch();
       }
 
-      const redis = await Client.getConnection();
-      const token = utils.getRandomString();
-      await redis.set(`session_id:${token}`, String(existing_user.id), {
-        EX: SESSION_EXPIRE_AFTER_SECONDS
-      });
+      const connection = await RedisConnector.getConnection();
+      const redis = new RedisClient(connection);
+      const token = await redis.createAndGetNewToken(existing_user.id);
+      console.log("token", token);
 
       res
       .status(StatusCodes.HTTP_OK)
@@ -102,8 +101,9 @@ class AuthController {
     try {
       const token =  req.auth.token;
       try {
-        const redis = await Client.getConnection();
-        redis.del(`session_id:${token}`);
+        const connection = await RedisConnector.getConnection();
+        const redis = new RedisClient(connection);
+        await redis.removeToken(req.auth.user.id, token);
       } catch (err) {}
       res.sendStatus(StatusCodes.HTTP_OK);
     } catch (err) {

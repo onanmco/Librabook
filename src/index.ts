@@ -8,6 +8,7 @@ import { respond404 as respondWith404IfNoRouteMatches } from './app/middlewares/
 import * as dotenv from 'dotenv';
 import { DBSeeder } from './nonhttp/DBSeeder';
 import {generalErrorHandler} from "./app/middlewares/errorHandlers";
+import {RedisConnector} from "./libs/redis/RedisConnector";
 
 dotenv.config();
 let port: string = process.env.APP_PORT || '8000';
