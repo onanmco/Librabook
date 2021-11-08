@@ -40,7 +40,10 @@ export class Client {
     });
 
     const individualToken = `tokens:${token}:user_id`;
-    await this.connection.expire(individualToken, expireAfterSeconds);
+    await this.connection.del(individualToken);
+    await this.connection.set(individualToken, String(userId), {
+      EX: expireAfterSeconds
+    });
   }
 
   public async removeToken(userId, token) {

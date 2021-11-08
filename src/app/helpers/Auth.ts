@@ -49,6 +49,7 @@ export class Auth {
       return false;
     }
 
+    await redis.removeExpiredTokens(authUserId);
     await redis.extendTokenExpiration(authUserId, bearerToken);
 
     const authUser = await User.findOne({
