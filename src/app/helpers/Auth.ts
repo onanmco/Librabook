@@ -2,9 +2,10 @@ import { Request } from "express";
 import { StatusCodes } from "../constants/StatusCodes";
 import * as utils from '../../utils';
 import Errors from "../constants/Errors";
-import { Client } from "../../libs/redis/Client";
+import { RedisConnector } from "../../libs/redis/RedisConnector";
 import { User } from "../entities/User";
 import { SESSION_EXPIRE_AFTER_SECONDS } from "../constants/Session";
+import { Client as RedisClient } from "../../libs/redis/Client";
 
 /**
  * Auth class is used to decompose the logic that determines if requested user is auth or not.
@@ -39,15 +40,17 @@ export class Auth {
       return false;
     }
 
-    const redis = await Client.getConnection();
-    const authUserId = await redis.get(`session_id:${bearerToken}`);
+    const connection = await RedisConnector.getConnection();
+    const redis = new RedisClient(connection);
+    const authUserId = await redis.getUserIdByToken(bearerToken);
   
     if (!authUserId) {
       this.status = StatusCodes.HTTP_UNAUTHORIZED;
       return false;
     }
 
-    await redis.expire(`session_id:${bearerToken}`, SESSION_EXPIRE_AFTER_SECONDS);
+    await redis.removeExpiredTokens(authUserId);
+    await redis.extendTokenExpiration(authUserId, bearerToken);
 
     const authUser = await User.findOne({
       where: {
