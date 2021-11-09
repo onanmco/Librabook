@@ -49,6 +49,7 @@ export class Book extends BaseEntity {
     let from = ` FROM ${tableName}`;
     let join = '';
     let groupBy = '';
+    let where = '';
     let orderBy = '';
     let limit = '';
     let offset = '';
@@ -66,8 +67,13 @@ export class Book extends BaseEntity {
       orderBy = ` ORDER BY ${aggregateCriteria} ${params.sortOrder}`;
     }
 
+    if (params.search_term !== null) {
+        bindedValues.push(params.search_term);
+        where = ` WHERE name LIKE '%' || ? || '%'`
+    }
+
     if (params.limit !== null) {
-        bindedValues = [params.limit];
+        bindedValues.push(params.limit);
         limit = ` LIMIT ?`;
     }
 
@@ -76,7 +82,7 @@ export class Book extends BaseEntity {
         offset = ` OFFSET ?`;
     }
 
-    const sql = `${select}${from}${join}${groupBy}${orderBy}${limit}${offset};`;
+    const sql = `${select}${from}${join}${groupBy}${where}${orderBy}${limit}${offset};`;
     const entityManager = getManager();
     return await entityManager.query(sql, bindedValues);
   }
