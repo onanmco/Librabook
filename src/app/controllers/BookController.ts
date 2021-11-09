@@ -22,6 +22,8 @@ class BookController {
    * If there is no sort criteria speficied however a sort order specified,
    * results will be sorted according to reader count of the books.
    * 
+   * Other than above mentioned, you can apply pagination by specifying limit and offset query params.
+   * 
    * @param {Request} req 
    * @param {Response} res 
    */
@@ -29,7 +31,12 @@ class BookController {
   public async getAllBooks(req: Request, res: Response, next: NextFunction) {
     try {
       res.status(StatusCodes.HTTP_OK)
-        .json(await Book.getAllBooks(req.query.sort, req.query.order));
+        .json(await Book.getAllBooks({
+            sortCriteria: req.query.sort ? String(req.query.sort) : null,
+            sortOrder: req.query.order ? String(req.query.order) : null,
+            limit: req.query.limit ? parseInt(String(req.query.limit)) : null,
+            offset: req.query.offset ? parseInt(String(req.query.offset)) : null
+        }));
     } catch (err) {
       next(err);
     }
