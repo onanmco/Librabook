@@ -22,6 +22,8 @@ class BookController {
    * If there is no sort criteria speficied however a sort order specified,
    * results will be sorted according to reader count of the books.
    * 
+   * Other than above mentioned, you can apply pagination by specifying limit and offset query params.
+   * 
    * @param {Request} req 
    * @param {Response} res 
    */
