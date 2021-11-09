@@ -76,7 +76,6 @@ class AuthController {
       const connection = await RedisConnector.getConnection();
       const redis = new RedisClient(connection);
       const token = await redis.createAndGetNewToken(existing_user.id);
-      console.log("token", token);
 
       res
       .status(StatusCodes.HTTP_OK)
