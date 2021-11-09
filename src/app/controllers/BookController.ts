@@ -35,7 +35,8 @@ class BookController {
             sortCriteria: req.query.sort ? String(req.query.sort) : null,
             sortOrder: req.query.order ? String(req.query.order) : null,
             limit: req.query.limit ? parseInt(String(req.query.limit)) : null,
-            offset: req.query.offset ? parseInt(String(req.query.offset)) : null
+            offset: req.query.offset ? parseInt(String(req.query.offset)) : null,
+            search_term: req.query.search_term ? String(req.query.search_term) : null
         }));
     } catch (err) {
       next(err);
