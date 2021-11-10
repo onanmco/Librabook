@@ -9,6 +9,8 @@ import * as dotenv from 'dotenv';
 import { DBSeeder } from './nonhttp/DBSeeder';
 import {generalErrorHandler} from "./app/middlewares/errorHandlers";
 import {RedisConnector} from "./libs/redis/RedisConnector";
+import * as swagger from "swagger-ui-express";
+import * as swaggerDocument from "./swagger.json";
 
 dotenv.config();
 let port: string = process.env.APP_PORT || '8000';
@@ -20,6 +22,7 @@ createConnection().then(async () => {
   if (!!parseInt(process.env.DB_SEED)) {
     await DBSeeder.seed();
   }
+  app.use("/documentation", swagger.serve, swagger.setup(swaggerDocument))
   app.use(Router.getInstance());
   app.use(respondWith404IfNoRouteMatches);
   app.use(generalErrorHandler);

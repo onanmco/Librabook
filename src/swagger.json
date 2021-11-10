@@ -1,0 +1,301 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "S/W Engineering Term Project API Documentation",
+    "description": "M. Cem ONAN <180315064@ogr.cbu.edu.tr>",
+    "version": "1.0.0"
+  },
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "Bearer Token Authentication": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Login to your account, copy your token and paste here as \"Bearer {token}\""
+    }
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with e-mail and password",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "required": [
+                "email",
+                "password"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "janedoe@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "Jane1234"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Logout from current session",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/books": {
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Get all books",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search_term",
+            "required": false,
+            "type": "string",
+            "default": "The Dispossessed",
+            "description": "Filter criteria by book name"
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "type": "string",
+            "default": "id",
+            "description": "Sort criteria"
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "type": "string",
+            "default": "asc",
+            "description": "Sort order (asc or desc)"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "type": "number",
+            "default": "10",
+            "description": "Result set limit"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "type": "number",
+            "default": "0",
+            "description": "Result set offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Register a new user",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "required": [
+                "first_name",
+                "last_name",
+                "email",
+                "password"
+              ],
+              "properties": {
+                "first_name": {
+                  "type": "string",
+                  "example": "Jane"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Doe"
+                },
+                "email": {
+                  "type": "string",
+                  "example": "janedoe@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "Jane1234"
+                },
+                "group": {
+                  "type": "string",
+                  "example": "ADMIN",
+                  "description": "Only logged in admin users can create admin users. Valid groups (ADMIN, CONSUMER)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/users/{userId}/books": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get all books of logged in user",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "number",
+            "description": "Logged in user's id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Bad Request"
+          }
+        },
+        "security": [
+          {
+            "Bearer Token Authentication": []
+          }
+        ]
+      }
+    },
+    "/users/{userId}/books/{bookId}": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Add a new book to logged in user's bookshelf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "number",
+            "description": "Logged in user's id"
+          },
+          {
+            "in": "path",
+            "name": "bookId",
+            "required": true,
+            "type": "number",
+            "description": "Id of the book that you want to add"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Bearer Token Authentication": []
+          }
+        ]
+      }
+    },
+    "/users/{userId}/books/{bookId}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Delete an existing book from logged in user's bookshelf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "number",
+            "description": "Logged in user's id"
+          },
+          {
+            "in": "path",
+            "name": "bookId",
+            "required": true,
+            "type": "number",
+            "description": "Id of the book that you want to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Bearer Token Authentication": []
+          }
+        ]
+      }
+    }
+  }
+}
