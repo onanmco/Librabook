@@ -15,7 +15,7 @@ export class Role extends BaseEntity {
   })
   name: string
 
-  @ManyToMany(() => Role)
+  @ManyToMany(() => Group)
   @JoinTable({
     name: 'group_role',
     joinColumn: {
