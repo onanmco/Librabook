@@ -18,7 +18,7 @@ import { StatusCodes } from '../constants/StatusCodes';
 import { Groups } from '../constants/Groups';
 import { Group } from '../entities/Group';
 import _ from 'lodash';
-import { Auth } from '../helpers/Auth';
+import { Auth as AuthHelper } from '../helpers/Auth';
 import { User as AuthUser} from '../gates/User';
 import {CustomErrorBuilder} from "../../core/types/CustomErrorBuilder";
 
@@ -49,8 +49,9 @@ class UserController {
   @USE_MIDDLEWARE(bodyParser.json())
   public async create(req: RequestWithAuthProp, res: Response, next: NextFunction) {
     try {
-      const requestedUser = new Auth(req);
-      const isRoot: boolean = (await requestedUser.isAuth()) && AuthUser.canCreateRootUser(requestedUser.getAuthUser());
+      const authHelper = new AuthHelper(req);
+      const authUser = new AuthUser(await authHelper.getAuthUser());
+      const isRoot: boolean = authUser.canCreateRootUser();
       const groups = _.keyBy(await Group.find(), 'name');
 
       let validationRules = {

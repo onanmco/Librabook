@@ -13,7 +13,7 @@ export async function requiresAuth(req: RequestWithAuthProp, res: Response, next
     const error = new CustomErrorBuilder(Errors.UNAUTHORIZED_ACCESS)
       .status(StatusCodes.HTTP_UNAUTHORIZED);
 
-    const details = authAttempt.getErrors();
+    const details = await authAttempt.getErrors();
     if (details.length > 0) {
       error.details(details)
     }
@@ -23,7 +23,7 @@ export async function requiresAuth(req: RequestWithAuthProp, res: Response, next
 
   req.auth = {
     token: utils.getBearerToken(req),
-    user: authAttempt.getAuthUser()
+    user: await authAttempt.getAuthUser()
   };
 
   next();

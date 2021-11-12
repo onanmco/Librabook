@@ -13,7 +13,7 @@ import * as swagger from "swagger-ui-express";
 import * as swaggerDocument from "./swagger.json";
 
 dotenv.config();
-let port: string = process.env.APP_PORT || '8000';
+let port: string = process.env.APP_PORT || '3000';
 const app = express();
 const controllerLoader = new Loader(path.join(__dirname + '/app/controllers'));
 controllerLoader.loadControllers();
