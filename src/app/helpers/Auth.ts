@@ -74,15 +74,27 @@ export class Auth {
     return true;
   }
 
-  public getStatus(): StatusCodes {
+  public async getStatus(): Promise<StatusCodes> {
+    if (this.pristine) {
+      await this.isAuth();
+    }
+
     return this.status;
   }
 
-  public getErrors(): string[] {
+  public async getErrors(): Promise<string[]> {
+    if (this.pristine) {
+      await this.isAuth();
+    }
+
     return this.errors;
   }
 
-  public getAuthUser(): User {
+  public async getAuthUser(): Promise<User> {
+    if (this.pristine) {
+      await this.isAuth();
+    }
+
     return this.authUser;
   }
 }
