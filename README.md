@@ -1,4 +1,7 @@
 # swe_term_project_backend 
+
+# API Docs => localhost:3000/documentation
+
 Requirements:\
 Docker\
 NodeJS
