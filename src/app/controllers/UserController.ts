@@ -4,7 +4,8 @@ import {
   USE_MIDDLEWARE,
   REST_CONTROLLER,
   HTTP_GET,
-  HTTP_DEL
+  HTTP_DEL,
+  HTTP_PUT
 } from '../../core/decorators';
 import bodyParser from 'body-parser';
 import { requiresAuth } from '../middlewares/requiresAuth';
@@ -21,6 +22,7 @@ import _ from 'lodash';
 import { Auth as AuthHelper } from '../helpers/Auth';
 import { User as AuthUser} from '../gates/User';
 import {CustomErrorBuilder} from "../../core/types/CustomErrorBuilder";
+import { BookUser } from '../entities/BookUser';
 
 /**
  * Class UserController
@@ -224,6 +226,80 @@ class UserController {
       res.status(StatusCodes.HTTP_OK).json(existingBook);
     } catch (err) {
       next(err);
+    }
+  }
+
+  /**
+   * Method to update last read page of a book from the logged in user's bookshelf
+   * 
+   * @param {RequestWithAuthProp} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   */
+  @HTTP_PUT('/:userId/books/:bookId')
+  @USE_MIDDLEWARE(requiresAuth)
+  @USE_MIDDLEWARE(bodyParser.json())
+  public async updateBookFromUsersBookshelf(req: RequestWithAuthProp, res: Response, next: NextFunction) {
+    try {
+        const schema = Yup.object({
+            userId: Yup.number()
+              .required(),
+            bookId: Yup.number()
+              .required()
+          });
+    
+          try {
+            schema.validateSync(req.params, { abortEarly: false })
+          } catch ({ errors }) {
+            new CustomErrorBuilder(Errors.VALIDATION_ERROR).details(errors).dispatch();
+          }
+    
+          const user = req.auth.user;
+    
+          if (user.id != parseInt(req.params.userId)) {
+            return res.sendStatus(StatusCodes.HTTP_NOT_FOUND);
+          }
+    
+          const bookId = req.params.bookId;
+    
+          const existingBook = await Book.findOne({ id: parseInt(bookId) });
+    
+          if (! existingBook) {
+            new CustomErrorBuilder(`Book with id: ${bookId} could not be found.`).dispatch();
+          }
+    
+          if (! await user.hasBook(existingBook)) {
+            new CustomErrorBuilder(`You don't have the book with id: ${bookId}`).dispatch();
+          }
+    
+          const schema2 = Yup.object({
+            last_read_page: Yup.number()
+                .required()
+          });
+    
+          try {
+            schema2.validateSync(req.body, { abortEarly: false })
+          } catch ({ errors }) {
+            new CustomErrorBuilder(Errors.VALIDATION_ERROR).details(errors).dispatch();
+          }
+    
+          const relation = await BookUser.findOne({
+              where: {
+                  user_id: user.id,
+                  book_id: bookId
+              }
+          });
+    
+          relation.last_read_page = req.body.last_read_page;
+    
+          await relation.save();
+    
+          return res.status(StatusCodes.HTTP_OK).json({
+              ...existingBook,
+              last_read_page: req.body.last_read_page
+          })
+    } catch(err) {
+        next(err);
     }
   }
 

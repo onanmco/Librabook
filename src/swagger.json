@@ -304,6 +304,57 @@
           }
         ]
       },
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update the last read page of an user's book.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "number",
+            "description": "Logged in user's id"
+          },
+          {
+            "in": "path",
+            "name": "bookId",
+            "required": true,
+            "type": "number",
+            "description": "Id of the book that you want to add"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "last_read_page": {
+                  "type": "number",
+                  "example": 20
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Bearer Token Authentication": []
+          }
+        ]
+      },
       "delete": {
         "tags": [
           "User"
