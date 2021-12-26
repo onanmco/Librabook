@@ -1,24 +1,24 @@
 # swe_term_project_backend 
-
 # API Docs => localhost:3000/documentation
 
-Requirements:\
+# Components:\
 Docker\
 NodeJS
 
-Initialization:
-1. $ npm install -g concurrently
-2. $ npm install -g nodemon
-3. $ npm install -g typescript
-4. $ npm install -g ts-node
-5. $ npm i
-6. $ cp .env.example .env
-7. $ cp ormconfig.example.json ormconfig.json
-8. Make sure you have set required values for environment variables.
-9. Set DB_SEED=1 if you want to seed db for creating groups and roles and root accounts optionally. Once the DB has been seed, it's recommended to set this as 0.
+# Initialization (Installing App Specific Dependencies and Setting Up the Environment):
+Instructions specified in this section is required to be applied only once.
+1. $ npm i
+2. $ cp .env.example .env
+3. $ cp ormconfig.example.json ormconfig.json
+4. There are basicly 2 groups of users: Root, Consumer. Root users have extra abilities to mutate entities in system-wide. To create a root user(s), you are supposed to pass required credentials into ROOT_CREDS environment variable. E.g. ROOT_CREDS=[{"first_name":"Root","last_name":"User","email":"root@local.com","password":"Rppt1234"}]
+5. Set DB_SEED=1 if you want to seed db for creating groups and roles and root accounts optionally. Once the DB has been seed, it's recommended to set this as 0.
 
-Setting Up Redis:
+
+# Setting Up Redis:
+Redis is used as an in memory cache storage within this app to store session tokens of authenticated users, rather than a relational database to minimize query response time and separating the application logic and identity access management logic. Hosts may not having the Redis or configuring Redis may be quite complicated in certain circumstances therefore, it's preferred to run a Redis instance through Docker, by the help of  a docker compose configuration file which allows hosts to run Redis regardless of the environment.
+
+To run Redis instance run the following command at the root directory of where the project files located in.
 1. $ docker compose -f ./src/nonhttp/containers/redis/docker-compose.yml --env-file .env up -d
 
-Starting App:
+# Starting App:
 1. npm start
