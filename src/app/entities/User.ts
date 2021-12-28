@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn, BaseEntity, getRepository } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn, BaseEntity, getRepository, getManager } from 'typeorm';
 import { Book } from './Book';
 import { BookUser } from './BookUser';
 import { Group } from './Group';
@@ -74,13 +74,19 @@ export class User extends BaseEntity {
 
   public async getBooks() {
     const userId = this.id;
-    const books = await getRepository(Book).createQueryBuilder('book')
-      .innerJoin('book.junction', '')
-      .where('user_id = :userId', {userId})
-      .addSelect('last_read_page')
-      .getRawMany()
-
-    return books;
+    const entityManager = getManager();
+    return await entityManager.query(`
+        SELECT 
+            b.*, 
+            bu.last_read_page
+        FROM
+            book_user bu
+            JOIN books b
+                ON b.id = bu.book_id
+            JOIN users u
+                ON u.id = bu.user_id
+        WHERE u.id = ?
+    `, [userId]);
   }
 
   public async hasBook(book: Book) {
